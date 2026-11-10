@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sania Challenge</title>
+<style>
+:root{--bg:#081426;--panel:#10233d;--line:#244567;--cyan:#48d8e8;--gold:#ffd166;--text:#f3f7ff;--muted:#a9bad0}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;color:var(--text);background:radial-gradient(circle at 15% 10%,#17466b 0,transparent 34%),linear-gradient(145deg,#07101e,#102c49);display:grid;place-items:center;padding:22px}
+main{width:min(100%,680px)}
+header{text-align:center;margin-bottom:20px}
+.logo{width:76px;height:76px;margin:auto auto 12px;border-radius:24px;display:grid;place-items:center;background:linear-gradient(135deg,var(--cyan),#2777b8);color:#071426;font-size:30px;font-weight:900;box-shadow:0 12px 35px #0005}
+h1{font-size:clamp(30px,7vw,48px);margin:0;letter-spacing:1px}
+.sub{color:var(--muted);margin:7px 0}
+.panel{background:#0d2038ed;border:1px solid var(--line);border-radius:24px;padding:clamp(20px,5vw,34px);box-shadow:0 24px 70px #0006}
+.notice{font-size:13px;color:#c4d3e5;background:#122b46;border:1px solid #294a68;padding:11px 14px;border-radius:13px;margin:16px 0}
+label{display:block;margin:18px 0 8px;font-weight:700}
+input{width:100%;padding:15px;border-radius:13px;border:1px solid #365879;background:#071629;color:white;font:inherit;outline:none}
+input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px #48d8e822}
+button{font:inherit;font-weight:800;border:0;border-radius:13px;padding:14px 20px;cursor:pointer}
+.primary{width:100%;margin-top:14px;color:#061522;background:linear-gradient(90deg,var(--cyan),#86f0d1)}
+.secondary{background:#1a3858;color:white;border:1px solid #345879}
+button:disabled{opacity:.45;cursor:not-allowed}
+.hidden{display:none!important}
+.topline{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:14px;margin-bottom:16px}
+.progress{height:8px;border-radius:20px;background:#203b58;overflow:hidden;margin-bottom:22px}
+.bar{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--gold));transition:width .25s}
+h2{font-size:23px;margin:0 0 18px}
+.answers{display:grid;gap:10px}
+.answer{width:100%;text-align:right;background:#132d49;color:var(--text);border:1px solid #31516e}
+.answer:hover{border-color:var(--cyan)}
+.answer.selected{border-color:var(--cyan);background:#17445a}
+.feedback{min-height:28px;color:var(--gold);margin:14px 0 4px}
+.result{text-align:center}
+.score{font-size:54px;font-weight:900;color:var(--gold);margin:8px}
+footer{text-align:center;color:#8fa6bf;font-size:12px;margin-top:16px}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="logo">SC</div>
+  <h1>SANIA CHALLENGE</h1>
+  <p class="sub">اختبر معلوماتك على وهران والسانية 🇩🇿</p>
+</header>
+
+<section class="panel" id="welcome">
+  <h2>مرحبا بيك في التحدي!</h2>
+  <p style="color:var(--muted)">دخل اسم مستعار وابدأ جاوب على الأسئلة واربح النقاط.</p>
+  <div class="notice">🎮 لعبة تجريبية فقط. استعمل اسمًا مستعارًا؛ لا تطلب كلمة سر ولا ترسل أو تحفظ معلوماتك.</div>
+  <label for="nickname">اسم اللاعب</label>
+  <input id="nickname" maxlength="20" placeholder="مثال: لاعب وهراني" autocomplete="off">
+  <button class="primary" id="start">ابدأ التحدي</button>
+</section>
+
+<section class="panel hidden" id="quiz">
+  <div class="topline"><span id="player"></span><span id="counter"></span></div>
+  <div class="progress"><div class="bar" id="bar"></div></div>
+  <h2 id="question"></h2>
+  <div class="answers" id="answers"></div>
+  <div class="feedback" id="feedback" aria-live="polite"></div>
+  <button class="primary" id="next" disabled>السؤال التالي</button>
+</section>
+
+<section class="panel hidden result" id="result">
+  <h2>كملت التحدي! 🎉</h2>
+  <p id="resultName"></p>
+  <div class="score" id="score"></div>
+  <p id="message" style="color:var(--muted)"></p>
+  <button class="primary" id="again">عاود العب</button>
+</section>
+<footer>معلومات عامة عن وهران والسانية • لا يوجد تسجيل حسابات أو إرسال بيانات</footer>
+</main>
+<script>
+const questions = [
+ {q:"في أي ولاية تقع بلدية السانية؟",a:["وهران","تلمسان","مستغانم","سيدي بلعباس"],c:0,why:"السانية بلدية تابعة لولاية وهران."},
+ {q:"ما اسم المطار الدولي المعروف في منطقة السانية؟",a:["مطار هواري بومدين","مطار أحمد بن بلة","مطار محمد بوضياف","مطار رابح بيطاط"],c:1,why:"مطار وهران الدولي يحمل اسم أحمد بن بلة."},
+ {q:"على أي بحر تطل مدينة وهران؟",a:["البحر الأحمر","بحر قزوين","البحر الأبيض المتوسط","البحر الأسود"],c:2,why:"وهران مدينة ساحلية على البحر الأبيض المتوسط."},
+ {q:"ما هي عاصمة ولاية وهران؟",a:["السانية","وهران","أرزيو","بطيوة"],c:1,why:"مدينة وهران هي عاصمة الولاية."},
+ {q:"ما اسم الحصن التاريخي الشهير المطل على وهران؟",a:["سانتا كروز","قلعة بني حماد","قصر المشور","قلعة الجزائر"],c:0,why:"حصن سانتا كروز من أشهر معالم وهران."}
+];
+let playerName="",index=0,score=0,chosen=false;
+const $=id=>document.getElementById(id);
+function show(id){["welcome","quiz","result"].forEach(x=>$(x).classList.toggle("hidden",x!==id))}
+$("start").addEventListener("click",()=>{
+ const name=$("nickname").value.trim();
+ if(!name){$("nickname").focus();$("nickname").placeholder="اكتب اسمًا مستعارًا أولًا";return}
+ playerName=name.slice(0,20);index=0;score=0;show("quiz");render();
+});
+function render(){
+ chosen=false;$("next").disabled=true;$("feedback").textContent="";
+ $("player").textContent="اللاعب: "+playerName;
+ $("counter").textContent=`${index+1} / ${questions.length}`;
+ $("bar").style.width=(index/questions.length*100)+"%";
+ const item=questions[index];$("question").textContent=item.q;$("answers").innerHTML="";
+ item.a.forEach((answer,i)=>{
+  const b=document.createElement("button");b.className="answer";b.textContent=answer;
+  b.addEventListener("click",()=>select(i,b));$("answers").appendChild(b);
+ });
+}
+function select(i,button){
+ if(chosen)return;chosen=true;const item=questions[index];
+ [...$("answers").children].forEach((b,j)=>{b.disabled=true;if(j===item.c)b.classList.add("selected")});
+ if(i===item.c){score++;$("feedback").textContent="صحيح! "+item.why}
+ else $("feedback").textContent="ماشي هي؛ الجواب الصحيح: "+item.a[item.c]+". "+item.why;
+ $("next").disabled=false;$("next").textContent=index===questions.length-1?"شوف النتيجة":"السؤال التالي";
+}
+$("next").addEventListener("click",()=>{
+ index++;if(index<questions.length){render();$("next").textContent="السؤال التالي"}
+ else{
+  show("result");$("resultName").textContent="يعطيك الصحة يا "+playerName;
+  $("score").textContent=score+" / "+questions.length;
+  $("message").textContent=score===questions.length?"ممتاز! راك تعرف وهران مليح.":score>=3?"نتيجة مليحة! زيد اكتشف وهران.":"بداية مليحة، تقدر تعاود وتحسن نتيجتك.";
+ }
+});
+$("again").addEventListener("click",()=>{index=0;score=0;show("welcome");$("nickname").value=playerName});
+$("nickname").addEventListener("keydown",e=>{if(e.key==="Enter")$("start").click()});
+</script>
+</body>
+</html>
